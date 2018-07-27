@@ -142,8 +142,13 @@ public class RNFusedLocationModule extends ReactContextBaseJavaModule {
         boolean highAccuracy = options.hasKey("enableHighAccuracy") &&
             options.getBoolean("enableHighAccuracy");
 
+        String powerModeOption = options.hasKey("lowAccuracyPowerMode") ?
+                options.getString("lowAccuracyPowerMode") : "balanced";
+
+
         // TODO: Make other PRIORITY_* constants availabe to the user
-        mLocationPriority = highAccuracy ? LocationRequest.PRIORITY_HIGH_ACCURACY : DEFAULT_ACCURACY;
+        mLocationPriority = highAccuracy ? LocationRequest.PRIORITY_HIGH_ACCURACY :
+                getLowAccuracyLocationPriority(powerModeOption);
 
         mTimeout = options.hasKey("timeout") ? (long) options.getDouble("timeout") : Long.MAX_VALUE;
         mMaximumAge = options.hasKey("maximumAge")
@@ -441,5 +446,19 @@ public class RNFusedLocationModule extends ReactContextBaseJavaModule {
             // Illegal callback invocation
             Log.w(TAG, e.getMessage());
         }
+    }
+
+    private int getLowAccuracyLocationPriority(String powerModeOption) {
+        switch (powerModeOption) {
+            case "balanced":
+                return DEFAULT_ACCURACY;
+            case "low":
+                return LocationRequest.PRIORITY_LOW_POWER;
+            case "zero":
+                return LocationRequest.PRIORITY_NO_POWER;
+            default:
+                Log.w(TAG,"Unknown power option: " + powerModeOption + ". Using 'balanced'");
+        }
+        return DEFAULT_ACCURACY;
     }
 }
